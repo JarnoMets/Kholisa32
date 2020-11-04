@@ -38,21 +38,21 @@
 								<option id="gnu.c.compiler.option.debugging.level.1121920032" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level" useByScannerDiscovery="false" value="gnu.c.debugging.level.max" valueType="enumerated" />
 								<option id="gnu.c.compiler.option.include.paths.1883694068" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="../Inc" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/src/include" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/system" />
+									
+									
 									<listOptionValue builtIn="false" value="../Drivers/STM32F7xx_HAL_Driver/Inc" />
 									<listOptionValue builtIn="false" value="../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/src/include/netif/ppp" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/src/apps/httpd" />
+									
+									
 									<listOptionValue builtIn="false" value="../Drivers/CMSIS/Device/ST/STM32F7xx/Include" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/src/include/lwip" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/src/include/lwip/apps" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/src/include/lwip/priv" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/src/include/lwip/prot" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/src/include/netif" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/src/include/posix" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/src/include/posix/sys" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/system/arch" />
+									
+									
+									
+									
+									
+									
+									
+									
 									<listOptionValue builtIn="false" value="../Drivers/CMSIS/Include" />
 								</option>
 								<option id="gnu.c.compiler.option.preprocessor.def.symbols.1411958678" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" useByScannerDiscovery="false" valueType="definedSymbols">
@@ -70,21 +70,21 @@
 								<option id="gnu.cpp.compiler.option.debugging.level.2025097258" name="Debug Level" superClass="gnu.cpp.compiler.option.debugging.level" useByScannerDiscovery="false" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated" />
 								<option id="gnu.cpp.compiler.option.include.paths.1822555284" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="../Inc" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/src/include" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/system" />
+									
+									
 									<listOptionValue builtIn="false" value="../Drivers/STM32F7xx_HAL_Driver/Inc" />
 									<listOptionValue builtIn="false" value="../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/src/include/netif/ppp" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/src/apps/httpd" />
+									
+									
 									<listOptionValue builtIn="false" value="../Drivers/CMSIS/Device/ST/STM32F7xx/Include" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/src/include/lwip" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/src/include/lwip/apps" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/src/include/lwip/priv" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/src/include/lwip/prot" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/src/include/netif" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/src/include/posix" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/src/include/posix/sys" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/system/arch" />
+									
+									
+									
+									
+									
+									
+									
+									
 									<listOptionValue builtIn="false" value="../Drivers/CMSIS/Include" />
 								</option>
 								<option id="gnu.cpp.compiler.option.preprocessor.def.432862268" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" useByScannerDiscovery="false" valueType="definedSymbols">
@@ -175,21 +175,21 @@
 								<option id="gnu.c.compiler.option.debugging.level.1121920032" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level" useByScannerDiscovery="false" value="gnu.c.debugging.level.max" valueType="enumerated" />
 								<option id="gnu.c.compiler.option.include.paths.1883694068" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="../Inc" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/src/include" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/system" />
+									
+									
 									<listOptionValue builtIn="false" value="../Drivers/STM32F7xx_HAL_Driver/Inc" />
 									<listOptionValue builtIn="false" value="../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/src/include/netif/ppp" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/src/apps/httpd" />
+									
+									
 									<listOptionValue builtIn="false" value="../Drivers/CMSIS/Device/ST/STM32F7xx/Include" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/src/include/lwip" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/src/include/lwip/apps" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/src/include/lwip/priv" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/src/include/lwip/prot" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/src/include/netif" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/src/include/posix" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/src/include/posix/sys" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/system/arch" />
+									
+									
+									
+									
+									
+									
+									
+									
 									<listOptionValue builtIn="false" value="../Drivers/CMSIS/Include" />
 								</option>
 								<option id="gnu.c.compiler.option.preprocessor.def.symbols.1411958678" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" useByScannerDiscovery="false" valueType="definedSymbols">
@@ -207,21 +207,21 @@
 								<option id="gnu.cpp.compiler.option.debugging.level.2025097258" name="Debug Level" superClass="gnu.cpp.compiler.option.debugging.level" useByScannerDiscovery="false" value="gnu.cpp.debugging.level.max" valueType="enumerated" />
 								<option id="gnu.cpp.compiler.option.include.paths.1822555284" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="../Inc" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/src/include" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/system" />
+									
+									
 									<listOptionValue builtIn="false" value="../Drivers/STM32F7xx_HAL_Driver/Inc" />
 									<listOptionValue builtIn="false" value="../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/src/include/netif/ppp" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/src/apps/httpd" />
+									
+									
 									<listOptionValue builtIn="false" value="../Drivers/CMSIS/Device/ST/STM32F7xx/Include" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/src/include/lwip" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/src/include/lwip/apps" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/src/include/lwip/priv" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/src/include/lwip/prot" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/src/include/netif" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/src/include/posix" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/src/include/posix/sys" />
-									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/LwIP/system/arch" />
+									
+									
+									
+									
+									
+									
+									
+									
 									<listOptionValue builtIn="false" value="../Drivers/CMSIS/Include" />
 								</option>
 								<option id="gnu.cpp.compiler.option.preprocessor.def.symbols.191445722" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def.symbols" useByScannerDiscovery="false" valueType="definedSymbols">
