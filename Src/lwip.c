@@ -16,7 +16,7 @@
   *
   ******************************************************************************
   */
-  
+
 /* Includes ------------------------------------------------------------------*/
 #include "lwip.h"
 #include "lwip/init.h"
@@ -67,7 +67,7 @@ void MX_LWIP_Init(void)
   GATEWAY_ADDRESS[1] = 0;
   GATEWAY_ADDRESS[2] = 0;
   GATEWAY_ADDRESS[3] = 0;
-  
+
   /* Initilialize the LwIP stack without RTOS */
   lwip_init();
 
@@ -109,21 +109,21 @@ void MX_LWIP_Init(void)
  * ----------------------------------------------------------------------
  * Function given to help user to continue LwIP Initialization
  * Up to user to complete or change this function ...
- * Up to user to call this function in main.c in while (1) of main(void) 
+ * Up to user to call this function in main.c in while (1) of main(void)
  *-----------------------------------------------------------------------
- * Read a received packet from the Ethernet buffers 
+ * Read a received packet from the Ethernet buffers
  * Send it to the lwIP stack for handling
  * Handle timeouts if LWIP_TIMERS is set and without RTOS
- * Handle the llink status if LWIP_NETIF_LINK_CALLBACK is set and without RTOS 
+ * Handle the llink status if LWIP_NETIF_LINK_CALLBACK is set and without RTOS
  */
 void MX_LWIP_Process(void)
 {
 /* USER CODE BEGIN 4_1 */
 /* USER CODE END 4_1 */
   ethernetif_input(&gnetif);
-  
+
 /* USER CODE BEGIN 4_2 */
-/* USER CODE END 4_2 */  
+/* USER CODE END 4_2 */
   /* Handle timeouts */
   sys_check_timeouts();
 
@@ -145,7 +145,7 @@ sio_fd_t sio_open(u8_t devnum)
 /* USER CODE BEGIN 7 */
   sd = 0; // dummy code
 /* USER CODE END 7 */
-	
+
   return sd;
 }
 
@@ -180,7 +180,7 @@ u32_t sio_read(sio_fd_t fd, u8_t *data, u32_t len)
 
 /* USER CODE BEGIN 9 */
   recved_bytes = 0; // dummy code
-/* USER CODE END 9 */	
+/* USER CODE END 9 */
   return recved_bytes;
 }
 
@@ -199,7 +199,7 @@ u32_t sio_tryread(sio_fd_t fd, u8_t *data, u32_t len)
 
 /* USER CODE BEGIN 10 */
   recved_bytes = 0; // dummy code
-/* USER CODE END 10 */	
+/* USER CODE END 10 */
   return recved_bytes;
 }
 #endif /* MDK ARM Compiler */
