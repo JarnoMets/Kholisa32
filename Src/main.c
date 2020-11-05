@@ -20,9 +20,14 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-
+#include "stm32746g_discovery_qspi.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <stdio.h>
+#include <errno.h>
+#include <sys/stat.h>
+#include <sys/times.h>
+#include <sys/unistd.h>
 #include "memmanager.h"
 /* USER CODE END Includes */
 
@@ -74,7 +79,29 @@ static void MX_TIM6_Init(void);
 static void MX_TIM7_Init(void);
 static void MX_QUADSPI_Init(void);
 /* USER CODE BEGIN PFP */
-
+int _write(int file, char *ptr, int len) {
+    HAL_StatusTypeDef xStatus;
+    switch (file) {
+    case STDOUT_FILENO: /*stdout*/
+		xStatus = HAL_UART_Transmit(&huart1, (uint8_t*)ptr, len, HAL_MAX_DELAY);
+		if (xStatus != HAL_OK) {
+			errno = EIO;
+			return -1;
+		}
+        break;
+    case STDERR_FILENO: /* stderr */
+		xStatus = HAL_UART_Transmit(&huart1, (uint8_t*)ptr, len, HAL_MAX_DELAY);
+		if (xStatus != HAL_OK) {
+			errno = EIO;
+			return -1;
+		}
+        break;
+    default:
+        errno = EBADF;
+        return -1;
+    }
+    return len;
+}
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -88,49 +115,67 @@ static void MX_QUADSPI_Init(void);
   */
 int main(void)
 {
-  /* USER CODE BEGIN 1 */
+	/* USER CODE BEGIN 1 */
 
-  /* USER CODE END 1 */
+	/* USER CODE END 1 */
 
-  /* MCU Configuration--------------------------------------------------------*/
+	/* MCU Configuration--------------------------------------------------------*/
 
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+	/* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+	HAL_Init();
 
-  /* USER CODE BEGIN Init */
+	/* USER CODE BEGIN Init */
 
-  /* USER CODE END Init */
+	/* USER CODE END Init */
 
-  /* Configure the system clock */
-  SystemClock_Config();
+	/* Configure the system clock */
+	SystemClock_Config();
 
-  /* USER CODE BEGIN SysInit */
+	/* USER CODE BEGIN SysInit */
 
-  /* USER CODE END SysInit */
+	/* USER CODE END SysInit */
 
-  /* Initialize all configured peripherals */
-  MX_GPIO_Init();
-  MX_LTDC_Init();
-  MX_USART1_UART_Init();
-  MX_DMA2D_Init();
-  MX_FMC_Init();
-  MX_I2S2_Init();
-  MX_TIM6_Init();
-  MX_TIM7_Init();
-  MX_QUADSPI_Init();
-  /* USER CODE BEGIN 2 */
+	/* Initialize all configured peripherals */
+	MX_GPIO_Init();
+	MX_LTDC_Init();
+	MX_USART1_UART_Init();
+	MX_DMA2D_Init();
+	MX_FMC_Init();
+	MX_I2S2_Init();
+	MX_TIM6_Init();
+	MX_TIM7_Init();
+	//MX_QUADSPI_Init();
 
-  /* USER CODE END 2 */
+	init_memmanager();
+	/* USER CODE END 2 */
 
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
-  while (1)
-  {
-    /* USER CODE END WHILE */
+	/* Infinite loop */
+	/* USER CODE BEGIN WHILE */
+	s_game mario;
+	strcpy(mario.title, "Mario32");
+	mario.p_data = NULL;
+	mario.p_sound = NULL;
+	mario.p_sprites = NULL;
+	mario.p_save = NULL;
+	mario.save_len = 0;
+	mario.save_len_max = 0;
+	mario.game_len = 0;
 
-    /* USER CODE BEGIN 3 */
-  }
-  /* USER CODE END 3 */
+	printf("Start\r\n");
+	//erase_game_list();
+	//add_game_to_flash(mario);
+	load_game_list(g_games_list);
+	printf("#Games: %d\r\n", game_list_len());
+	printf("Game: %s\r\n", (char*)(g_games_list[0].title));
+	printf("Stop\r\n\n\n");
+
+	while (1)
+	{
+	/* USER CODE END WHILE */
+
+	/* USER CODE BEGIN 3 */
+	}
+	/* USER CODE END 3 */
 }
 
 /**
@@ -373,11 +418,11 @@ static void MX_QUADSPI_Init(void)
   /* USER CODE END QUADSPI_Init 1 */
   /* QUADSPI parameter configuration*/
   hqspi.Instance = QUADSPI;
-  hqspi.Init.ClockPrescaler = 255;
-  hqspi.Init.FifoThreshold = 1;
-  hqspi.Init.SampleShifting = QSPI_SAMPLE_SHIFTING_NONE;
-  hqspi.Init.FlashSize = 1;
-  hqspi.Init.ChipSelectHighTime = QSPI_CS_HIGH_TIME_1_CYCLE;
+  hqspi.Init.ClockPrescaler = 1;
+  hqspi.Init.FifoThreshold = 4;
+  hqspi.Init.SampleShifting = QSPI_SAMPLE_SHIFTING_HALFCYCLE;
+  hqspi.Init.FlashSize = 23;
+  hqspi.Init.ChipSelectHighTime = QSPI_CS_HIGH_TIME_6_CYCLE;
   hqspi.Init.ClockMode = QSPI_CLOCK_MODE_0;
   hqspi.Init.FlashID = QSPI_FLASH_ID_1;
   hqspi.Init.DualFlash = QSPI_DUALFLASH_DISABLE;
