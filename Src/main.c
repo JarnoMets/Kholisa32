@@ -151,7 +151,8 @@ int main(void)
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
-	s_game mario;
+
+	/*s_game mario;
 	strcpy(mario.title, "Mario32");
 	mario.p_data = NULL;
 	mario.p_sound = NULL;
@@ -168,7 +169,7 @@ int main(void)
 	printf("#Games: %d\r\n", game_list_len());
 	printf("Game: %s\r\n", (char*)(g_games_list[0].title));
 	printf("Stop\r\n\n\n");
-
+	*/
 	while (1)
 	{
 	/* USER CODE END WHILE */
