@@ -1,5 +1,5 @@
-#ifndef MEMMANAGER_H_
-#define MEMMANAGER_H_
+#ifndef _MEMMANAGER_H_
+#define _MEMMANAGER_H_
 
 #include "stdint.h"
 
@@ -12,7 +12,7 @@ typedef struct game {
 		char 		title[64];
 		uint8_t * 	p_icon;
 		uint32_t 	game_data_len;
-		uint8_t * 	p_data;
+		uint32_t * 	p_data;
 		uint32_t 	game_sprites_len;
 		uint8_t * 	p_sprites;
 		uint32_t 	game_sound_len;
@@ -40,7 +40,7 @@ void 		erase_game_list(void);
 
 s_game * 	load_game(char * name);
 void 		load_game_list(s_game_list * game_list);
-void 		add_game_to_flash(s_game game, len);
+void 		add_game_to_flash(s_game game, uint32_t len);
 
 
 #endif

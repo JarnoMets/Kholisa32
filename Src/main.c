@@ -29,6 +29,7 @@
 #include <sys/times.h>
 #include <sys/unistd.h>
 #include "memmanager.h"
+#include "interpreter.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -152,29 +153,34 @@ int main(void)
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
 
-	/*s_game mario;
-	strcpy(mario.title, "Mario32");
-	mario.p_data = NULL;
+	uint32_t tmp_data[] = {0xA30C0000, 0x6c6c6548, 0x6f77206f, 0x21646c72, 0xA2050000, 0x00010000};
+
+	s_game mario;
+	strcpy(mario.title, "Mario64");
+	mario.p_data = &tmp_data;
 	mario.p_sound = NULL;
 	mario.p_sprites = NULL;
 	mario.p_save = NULL;
 	mario.save_len = 0;
 	mario.save_len_max = 0;
-	mario.game_len = 0;
+	mario.game_data_len = 5;
 
-	printf("Start\r\n");
-	//erase_game_list();
-	//add_game_to_flash(mario);
+	g_active_game = mario;
+
+	printf("\n\n\nStart\r\n");
+	erase_game_list();
+	add_game_to_flash(mario, 64);
 	load_game_list(g_games_list);
 	printf("#Games: %d\r\n", game_list_len());
-	printf("Game: %s\r\n", (char*)(g_games_list[0].title));
-	printf("Stop\r\n\n\n");
-	*/
+	printf("Game: %s\r\n", (char*)(g_games_list->title));
+
+	interpreter_init();
 	while (1)
 	{
 	/* USER CODE END WHILE */
 
 	/* USER CODE BEGIN 3 */
+		interpreter_update();
 	}
 	/* USER CODE END 3 */
 }
