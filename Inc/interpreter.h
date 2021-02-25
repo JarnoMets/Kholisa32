@@ -3,11 +3,14 @@
 
 #include "stdint.h"
 
+#define STACK_SIZE 1024
+
 uint8_t interpreter_running;
 
-static uint32_t DP;
-static uint32_t SP;
-static uint32_t Rn[256];
+static uint32_t PC; 		/* Program counter 	*/
+static uint32_t SP; 		/* Stack pointer 	*/
+static uint32_t Rn[256];	/* Registers 		*/
+static uint32_t stack[STACK_SIZE];
 
 #define error_t uint8_t
 
@@ -16,7 +19,7 @@ static uint32_t Rn[256];
 
 
 #define	NOP 	0x00000000
-#define STOP 	0x00000000 /**/
+#define STOP 	0x00000000
 #define CLEAR   0x01000000
 #define RET		0x02000000
 #define SJMP 	0x03000000
@@ -31,7 +34,7 @@ static uint32_t Rn[256];
 #define RANDV	0x0C000000
 #define RANDR 	0x0D000000
 #define ADDV    0x0E000000
-#define ADD 	0x0F000000
+#define ADDR 	0x0F000000
 #define SUBV	0x10000000
 #define SUBR 	0x11000000
 #define MULV 	0x12000000
