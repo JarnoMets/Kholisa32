@@ -7,11 +7,6 @@
 
 uint8_t interpreter_running;
 
-static uint32_t PC; 		/* Program counter 	*/
-static uint32_t SP; 		/* Stack pointer 	*/
-static uint32_t Rn[256];	/* Registers 		*/
-static uint32_t stack[STACK_SIZE];
-
 #define error_t uint8_t
 
 
@@ -51,6 +46,16 @@ static uint32_t stack[STACK_SIZE];
 #define DEC 	0x1D000000
 #define DJNZ 	0x1E000000
 #define DJZ 	0x1F000000
+#define PUSH    0x20000000
+#define POP		0x21000000
+#define ANDV	0x22000000
+#define ANDR	0x23000000
+#define ORV		0x24000000
+#define ORR		0x25000000
+#define XORV	0x26000000
+#define XORR	0x27000000
+#define COMP	0x28000000
+
 
 #define DISP 	0xA0000000
 #define PLAY 	0xA1000000

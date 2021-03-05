@@ -4,11 +4,14 @@
 #include <stdio.h>
 #include <math.h>
 
+static uint32_t PC; 		/* Program counter 	*/
+static uint32_t SP; 		/* Stack pointer 	*/
+static uint32_t Rn[256];	/* Registers 		*/
+static uint32_t stack[STACK_SIZE];
+
 error_t interpreter_init() {
 	PC = 0;
 	SP = 0;
-
-	Rn[5] = 0xAB;
 
 	interpreter_running = 1;
 
@@ -32,6 +35,9 @@ error_t interpreter_update() {
 	printf("DP: %d\r\n", DP);
 	printf("DATA: %x\r\n", (uint)data_reg);
 	*/
+
+	if ((data_reg&MASK_COMMAND) == (NOP&MASK_COMMAND) && ((data_reg&0x00FF0000) == 0))
+		PC++;
 
 	/* STOP: Stops the program with given stop code	*/
 	if ((data_reg&MASK_COMMAND) == (STOP&MASK_COMMAND) && ((data_reg&0x00FF0000) > 0))
@@ -103,7 +109,7 @@ error_t interpreter_update() {
 	/* MOV: Copies a value to a register */
 	if ((data_reg&MASK_COMMAND) == (MOVV&MASK_COMMAND)) {
 		Rn[(data_reg&0x00FF0000) >> 16] = *(g_active_game.p_data + PC + 1); /* Copies value to register */
-		PC++;
+		PC += 2;
 	}
 
 
@@ -221,7 +227,37 @@ error_t interpreter_update() {
 	}
 
 
-	/* LR and RR TBI */
+	/* LR: */
+	if ((data_reg&MASK_COMMAND) == (LS&MASK_COMMAND)) {
+		uint32_t tmp;
+		if (Rn[(data_reg&0x0000FF00) >> 8] > 0 && Rn[(data_reg&0x0000FF00) >> 8] < 32) {
+			tmp = Rn[(data_reg&0x00FF0000)]>>(32-Rn[(data_reg&0x0000FF00) >> 8]);
+			Rn[(data_reg&0x00FF0000) >> 16] <<= Rn[(data_reg&0x0000FF00) >> 8];
+			Rn[(data_reg&0x00FF0000) >> 16] += tmp;
+		} else {
+			tmp = Rn[(data_reg&0x00FF0000)]&1<<31;
+			Rn[(data_reg&0x00FF0000) >> 16] <<= 1;
+			Rn[(data_reg&0x00FF0000) >> 16] += tmp>>31;
+		}
+		PC ++;
+	}
+
+
+	/* RR */
+	if ((data_reg&MASK_COMMAND) == (LS&MASK_COMMAND)) {
+		uint32_t tmp;
+		if (Rn[(data_reg&0x0000FF00) >> 8] > 0 && Rn[(data_reg&0x0000FF00) >> 8] < 32) {
+			tmp = Rn[(data_reg&0x00FF0000)]<<(32-Rn[(data_reg&0x0000FF00) >> 8]);
+			Rn[(data_reg&0x00FF0000) >> 16] >>= Rn[(data_reg&0x0000FF00) >> 8];
+			Rn[(data_reg&0x00FF0000) >> 16] += tmp;
+		} else {
+			tmp = Rn[(data_reg&0x00FF0000)]&1>>31;
+			Rn[(data_reg&0x00FF0000) >> 16] >>= 1;
+			Rn[(data_reg&0x00FF0000) >> 16] += tmp<<31;
+		}
+		PC ++;
+	}
+
 
 
 	/* INC: Increments a register by one */
@@ -238,8 +274,87 @@ error_t interpreter_update() {
 	}
 
 
-	/* DJNZ and DJZ TBI */
+	/* DJNZ: Decrease register by one and jump to address if register is not 0*/
+	if ((data_reg&MASK_COMMAND) == (DJNZ&MASK_COMMAND)) {
+		Rn[(data_reg&0x00FF0000) >> 16]--;
+		if (Rn[(data_reg&0x00FF0000) >> 16] == 0)
+			PC += 2;
+		else
+			PC = *(g_active_game.p_data + PC + 1);
+	}
 
+
+	/* DJZ: Decrease register by one and jump to address if register is not 0*/
+	if ((data_reg&MASK_COMMAND) == (DJZ&MASK_COMMAND)) {
+		Rn[(data_reg&0x00FF0000) >> 16]--;
+		if (Rn[(data_reg&0x00FF0000) >> 16] != 0)
+			PC += 2;
+		else
+			PC = *(g_active_game.p_data + PC + 1);
+	}
+
+
+	/* PUSH: Pushes a register to the stack	*/
+	if ((data_reg&MASK_COMMAND) == (PUSH&MASK_COMMAND)) {
+		stack[SP++] = Rn[(data_reg&0x00FF0000) >> 16];
+		PC++;
+	}
+
+
+	/* POP: Pops a 32-bit number from the stack and moves it to a register	*/
+	if ((data_reg&MASK_COMMAND) == (PUSH&MASK_COMMAND)) {
+		Rn[(data_reg&0x00FF0000) >> 16] = stack[--SP];
+		PC++;
+	}
+
+
+	/* AND: */
+	if ((data_reg&MASK_COMMAND) == (ANDV&MASK_COMMAND)) {
+		Rn[(data_reg&0x00FF0000) >> 16] &= *(g_active_game.p_data + PC + 1);
+		PC+=2;
+	}
+
+
+	/* AND: */
+	if ((data_reg&MASK_COMMAND) == (ANDR&MASK_COMMAND)) {
+		Rn[(data_reg&0x00FF0000) >> 16] &= Rn[(data_reg&0x0000FF00) >> 8];
+		PC++;
+	}
+
+
+	/* OR: */
+	if ((data_reg&MASK_COMMAND) == (ORV&MASK_COMMAND)) {
+		Rn[(data_reg&0x00FF0000) >> 16] |= *(g_active_game.p_data + PC + 1);
+		PC+=2;
+	}
+
+
+	/* OR: */
+	if ((data_reg&MASK_COMMAND) == (ORR&MASK_COMMAND)) {
+		Rn[(data_reg&0x00FF0000) >> 16] |= Rn[(data_reg&0x0000FF00) >> 8];
+		PC++;
+	}
+
+
+	/* XOR: */
+	if ((data_reg&MASK_COMMAND) == (XORV&MASK_COMMAND)) {
+		Rn[(data_reg&0x00FF0000) >> 16] ^= *(g_active_game.p_data + PC + 1);
+		PC+=2;
+	}
+
+
+	/* XOR: */
+	if ((data_reg&MASK_COMMAND) == (XORR&MASK_COMMAND)) {
+		Rn[(data_reg&0x00FF0000) >> 16] ^= Rn[(data_reg&0x0000FF00) >> 8];
+		PC++;
+	}
+
+
+	/* COMP: */
+	if ((data_reg&MASK_COMMAND) == (COMP&MASK_COMMAND)) {
+		Rn[(data_reg&0x00FF0000) >> 16] = ~Rn[(data_reg&0x00FF0000) >> 16];
+		PC++;
+	}
 
 	/*
 	 TBI
@@ -250,7 +365,7 @@ error_t interpreter_update() {
 
 	/*DEBUG: Prints the value of a register to the UART */
 	if ((data_reg&MASK_COMMAND) == DEBUGR) {
-			printf("Value of R0x%x: 0x%x\r\n", (uint)(data_reg&0x00FF0000) >> 16, (uint)Rn[(data_reg&0x00FF0000) >> 16]);
+			printf("Value of R0x%x: 0x%x\t%d\r\n", (uint)(data_reg&0x00FF0000) >> 16, (uint)Rn[(data_reg&0x00FF0000) >> 16], (uint)Rn[(data_reg&0x00FF0000) >> 16]);
 			PC ++;
 	}
 
