@@ -2,10 +2,21 @@ import sys
 import math
 
 def parse(line, nLine, PC, labels):
+
+    if line[0] == '.':
+        if line[:5] == ".name":
+            pass
+        
+        elif line[:4] == ".img":
+            pass
+    
+    if line == "":
+        return None
+    
     """ Add to label """
-    if ":" in line:
-        labels[line] = PC
-        print(PC)
+    if not '"' in line and ":" in line:
+        labels[line.upper()[:-1]] = PC
+        #print("PC " + line + str(PC))
         return None
     
     command = line.split(" ")[0].upper()
@@ -43,11 +54,9 @@ def parse(line, nLine, PC, labels):
 
     elif command == "CLEAR":
         string = "0x01000000"
-        PC += 1
 
     elif command == "RET":
         string = "0x02000000"
-        PC += 1
 
     elif command == "SJMP":
         """
@@ -56,13 +65,12 @@ def parse(line, nLine, PC, labels):
         """
         if data[0]:
             string = "0x04000000\n:{}".format(data[0])
-            PC += 2
         else:
             exit("Error at line " + str(nLine))
 
     elif command == "JMP":
         if data[0]:
-            string = "0x04000000\n:{}".format(data[0])
+            string = "0x04000000\n{}".format(data[0])
         else:
             exit("Error at line " + str(nLine))
 
@@ -71,15 +79,77 @@ def parse(line, nLine, PC, labels):
             string = "0x05000000\n:{}".format(data[0])
         else:
             exit("Error at line " + str(nLine))
-
-    #TBI
     
     
     elif command == "JNE":
-        pass
+        if len(data) < 3:
+            exit("Error at line" + str(nLine))
+
+        if data[0][0].upper() == 'R':
+            if data[0][1].isnumeric() and int(data[0][1:])<0xff:
+                if data[1][0].upper() == 'R':
+                    if int(data[1][1:])<0xff:
+                        if data[2][0].isalpha():
+                            string = "0x07{:02x}{:02x}00\n{}".format(int(data[0][1:]), int(data[1][1:]), data[2])
+                        else:
+                            exit("Error at line" + str(nLine))
+                    else:
+                        exit("Error at line" + str(nLine))
+                else:
+                    val = -1
+                    try:
+                        val = int(data[1],10)
+                    except:
+                        try:
+                            val = int(data[1],16)
+                        except:
+                            pass
+                    if val >= 0 and val<0xffffffff:
+                        if data[2][0].isalpha():
+                            string = "0x06{:02x}0000\n0x{:08x}\n{}".format(int(data[0][1:]), val, data[2])
+                        else:
+                            exit("Error at line" + str(nLine))
+                    else:
+                        exit("Error at line" + str(nLine))
+            else:
+                exit("Error at line" + str(nLine))
+        else:
+            exit("Error at line" + str(nLine))
 
     elif command == "JE":
-        pass
+        if len(data) < 3:
+            exit("Error at line" + str(nLine))
+
+        if data[0][0].upper() == 'R':
+            if data[0][1].isnumeric() and int(data[0][1:])<0xff:
+                if data[1][0].upper() == 'R':
+                    if int(data[1][1:])<0xff:
+                        if data[2][0].isalpha():
+                            string = "0x09{:02x}{:02x}00\n{}".format(int(data[0][1:]), int(data[1][1:]), data[2])
+                        else:
+                            exit("Error at line" + str(nLine))
+                    else:
+                        exit("Error at line" + str(nLine))
+                else:
+                    val = -1
+                    try:
+                        val = int(data[1],10)
+                    except:
+                        try:
+                            val = int(data[1],16)
+                        except:
+                            pass
+                    if val >= 0 and val<0xffffffff:
+                        if data[2][0].isalpha():
+                            string = "0x08{:02x}0000\n0x{:08x}\n{}".format(int(data[0][1:]), val, data[2])
+                        else:
+                            exit("Error at line" + str(nLine))
+                    else:
+                        exit("Error at line" + str(nLine))
+            else:
+                exit("Error at line" + str(nLine))
+        else:
+            exit("Error at line" + str(nLine))
 
     elif command == "MOV":
         if len(data) < 2:
@@ -431,12 +501,47 @@ def parse(line, nLine, PC, labels):
             exit("Error at line " + str(nLine))
 
 
-    #TBI
     elif command == "DJNZ":
-        pass
+        if len(data) < 2:
+            exit("Error at line" + str(nLine))
+
+        if data[0][0].upper() == 'R':
+            if data[0][1].isnumeric() and int(data[0][1:])<0xff:
+                if data[1][0].upper() == 'R':
+                    if int(data[1][1:])<0xff:
+                        if data[2][0].isalpha():
+                            string = "0x1E{:02x}0000\n{}".format(int(data[0][1:]), data[2])
+                        else:
+                            exit("Error at line" + str(nLine))
+                    else:
+                        exit("Error at line" + str(nLine))
+                else:
+                    exit("Error at line" + str(nLine))
+            else:
+                exit("Error at line" + str(nLine))
+        else:
+            exit("Error at line" + str(nLine))
 
     elif command == "DJE":
-        pass
+        if len(data) < 2:
+            exit("Error at line" + str(nLine))
+
+        if data[0][0].upper() == 'R':
+            if data[0][1].isnumeric() and int(data[0][1:])<0xff:
+                if data[1][0].upper() == 'R':
+                    if int(data[1][1:])<0xff:
+                        if data[2][0].isalpha():
+                            string = "0x1E{:02x}0000\n{}".format(int(data[0][1:]), data[2])
+                        else:
+                            exit("Error at line" + str(nLine))
+                    else:
+                        exit("Error at line" + str(nLine))
+                else:
+                    exit("Error at line" + str(nLine))
+            else:
+                exit("Error at line" + str(nLine))
+        else:
+            exit("Error at line" + str(nLine))
 
 
 
@@ -598,7 +703,6 @@ def parse(line, nLine, PC, labels):
             for n in range(0, int(len(chars)/4)):
                 string += "\n0x{:02x}{:02x}{:02x}{:02x}".format(chars[n*4+3],chars[n*4+2],chars[n*4+1],chars[n*4])
             
-            
             """ TBI """
         else:
             exit("Error at line " + str(nLine))
@@ -609,51 +713,82 @@ def parse(line, nLine, PC, labels):
 
 
 def compileTemp(fin, fout, lout):
-	PC = 0; 
-	labels = {}
-	for index, line in enumerate(fin):
-		#print(parse(line.rstrip(), index) + "\n")
-		#output = parse(unicode(line.rstrip(), "utf-8"), index+1, PC, labels)
-		output = parse(line.rstrip(), index+1, PC, labels)
-		if output:
-			PC += output.count("\n")+1
-			fout.write(output + "\n")
-	fout.close()
-	if len(labels):
-		lout.write("#labels { \n")
-		for _, (label, PC) in enumerate(labels.items()):
-			lout.write(label + ":" + str(PC) + "\n")
-		lout.write("} #endLables")
-	lout.close()
+    PC = 0
+    labels = {}
+    for index, line in enumerate(fin):
+        #print(parse(line.rstrip(), index) + "\n")
+        #output = parse(unicode(line.rstrip(), "utf-8"), index+1, PC, labels)
+        output = parse(line.rstrip(), index+1, PC, labels)
+        if output:
+            PC += output.count("\n")+1
+            fout.write(output + "\n")
 
+
+    if len(labels):
+        lout.write("#labels { \n")
+        for _, (label, PC) in enumerate(labels.items()):
+            lout.write(label + ':' + str(PC) + "\n")
+            
+        lout.write("} #endLables")
+    return labels
+    
+def replaceLabels(ftmp, fout, labels):
+    """
+    for line in lout:
+        if line[0].isalpha():
+            labels[line[:line.find(":")]] = line[line.find(":"):]
+    """
+    for line in ftmp:
+        line = line.strip()
+        if line[0].isalpha():
+            fout.write("0x{:08x}\n".format(labels[line]))
+        else:
+            fout.write(line + "\n")
+    
 def main(argc, argv):
-	if argc < 2:
-		print("No input file given!")
-		return -1
+    if argc < 2:
+        print("No input file given!")
+        return -1
 
-	try:
-		fin = open(argv[1], "r")
-	except:
-		print('Could not find "' + argv[1] + '"')
-		return -2
-		
-	if argc > 2:
-		try:
-			fout = open(argv[2], "w")
-		except:
-			print('Could not open "' + argv[2] + '"')
-			return -2
-	else:
-		fout = open("tmp.txt","w+")
-		
-	try:
-		lout = open("labels.txt", "w")
-	except:
-		print('Could not open labels \n')
-		return -3
+    try:
+        ftmp = open("tmp.txt", "w+")
+    except:
+        return -2
+        
+    try:
+        fin = open(argv[1], "r")
+    except:
+        print('Could not find "' + argv[1] + '"')
+        return -2
 
-	compileTemp(fin, fout, lout)
-	return 0
+    if argc > 2:
+        try:
+            fout = open(argv[2], "w+")
+        except:
+            print('Could not open "' + argv[2] + '"')
+            return -2
+    else:
+        fout = open("output.txt","w+")
+
+    try:
+        lout = open("labels.txt", "w+")
+    except:
+        print('Could not open labels \n')
+        return -3
+   
+    labels = compileTemp(fin, ftmp, lout)
+    ftmp.close()
+    try:
+        ftmp = open("tmp.txt", "r")
+    except:
+        return -2
+    replaceLabels(ftmp, fout, labels)
+
+    fin.close()
+    fout.close()
+    lout.close()
+
+    return 0
 
 
 
@@ -661,4 +796,4 @@ def main(argc, argv):
 
 
 if __name__ == "__main__":
-    main(len(sys.argv), sys.argv)
+    print("Finished program with error code " + str(main(len(sys.argv), sys.argv)))

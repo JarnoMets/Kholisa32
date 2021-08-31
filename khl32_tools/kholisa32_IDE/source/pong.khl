@@ -1,0 +1,273 @@
+.name = 'Pong demo'
+
+.img = {
+   
+}
+
+ .sound = {
+   
+}
+	;R100 Speed
+
+	;R101 ballX
+	;R102 ballY
+
+	;R103 momentumX
+	;R104 momentumY
+
+	;R105 player1X
+	;R106 player1Y
+
+	;R107 player2X
+	;R108 player2Y
+	
+	;R109 scorePlayer1
+	;R110 scorePlayer2
+
+	
+	;R111 Which player get ball after goal/reset 0 -> P1, 1 -> P2
+
+	;R112 ballDirX		0 -> right, 1 -> left
+	;R113 ballDirY 	0 -> down, 1 -> up
+
+	;R200 playerWidth
+	;R201 playerHeight
+	;R202 ballSize
+
+	;R203 ScorePosY 
+	;R204 scorePlayer1PosX
+	;R205 scorePlayer2PosX
+
+	;R210 ballColor
+	;R211 player1Color
+	;R212 player2Color
+	;R213 color black
+	;R214 color white
+init:
+	;Set ball and player sizes
+	mov R200, 20
+	mov R201, 70
+	mov R202, 20
+
+	;Set score positions
+	mov R203, 50
+	mov R204, 150
+	mov R205, 330
+
+	;Set color ball green
+	mov R210, 4278255360
+
+	;Set color player1 red
+	mov R211, 4294901760
+
+	;Set color player2 blue
+	mov R212, 4278190335
+
+	;Color black
+	mov R213, 4278190080
+
+	;Color white
+	mov R214, 4294967295
+
+	
+	;Set bg color to white
+	dispbgcolor R214
+
+
+	;Set players xPos
+	mov R105, 50
+	mov R107, 410
+
+	
+	;Set scores to 0
+	mov R109, 0
+	mov R110, 0
+
+	;Set game speed
+	mov R100, 1
+
+	;Set ball momentum
+	mov R103, 4
+	mov R104, 2
+
+	mov R112, 1
+	mov R113, 1
+
+	;Set game to starting poss
+	call reset
+main:
+	call checkInputs
+	call update
+	call AI
+	call draw
+	jmp main
+
+
+
+draw:
+	clear
+
+	;Draw ball
+	drawrect R101, R102, R202, R202, R210
+
+	;Draw player 1
+	drawrect R105, R106, R200, R201, R211
+
+	;Draw player 2
+	drawrect R107, R108, R200, R201, R212
+
+	;Display score player 1
+	dispnumber R109, R204, R203, R213
+
+	;Display score player 2
+	dispnumber R110, R205, R203, R213
+	
+	ret
+
+
+update:
+	
+	;Check if a goal is scored
+	JLT R101, 20,updateGoalP2
+	JGT R101, 460, updateGoalP1
+	jmp updatePastScoreCheck
+
+updateGoalP1:
+	inc R109
+	call reset
+	jmp updatePastScoreCheck
+updateGoalP2:
+	inc R110
+	call reset
+	jmp updatePastScoreCheck:
+
+updatePastScoreCheck:
+
+	;Check if ball hits wall
+	JLE R102, 5, updateHitTopWall
+	JGE R102, 250, updateHitBottomWall
+	jmp updatePastWallCheck
+
+updateHitTopWall:
+	mov R113, 0
+	jmp updatePastWallCheck
+updateHitBottomWall:
+	mov R113, 1
+	jmp updatePastWallCheck
+
+updatePastWallCheck:
+	
+	;Check if player1 hits ball
+
+	;P1Y + PlayerHeight
+	mov R20, R106
+	add R20, R201
+    
+   mov R21, R106
+   add R21, 20
+
+	JLT R101, 40, updatePastCheckHit
+	JGT R101, 60, updatePastCheckHitP1
+	JLT R102, R21, updatePastCheckHit
+	JGT R102, R20, updatePastCheckHit
+	mov R112, 0
+	jmp updatePastCheckHit
+
+updatePastCheckHitP1:
+	;P2Y + PlayerHeight
+	mov R20, R108
+	add R20, R201
+
+	JGT R101, 400, updatePastCheckHit
+	JLT R101, 380, updatePastCheckHit
+	JLT R102, R108, updatePastCheckHit
+	JGT R102, R20, updatePastCheckHit
+	mov R112, 1
+updatePastCheckHit:
+
+	; Update ball pos
+	JE R112, 0, updateBallMovingRight
+	sub R101, R103
+	jmp updateBallY
+updateBallMovingRight:
+	add R101, R103
+updateBallY:
+	JE R113, 0, updateBallMovingDown
+	sub R102, R104
+	jmp updateEnd
+updateBallMovingDown:
+	add R102, R104
+
+updateEnd:
+	ret
+
+
+reset:
+	;Set players Y pos
+	mov R106, 101
+	mov R108, 101
+
+	;Check if player1 has kickoff
+	JE R111, 0, reset2
+	mov R112, 1
+	jmp reset3
+reset2:
+	mov R112, 1
+
+reset3:
+	;Set ball to middle
+	mov R101, 230
+	mov R102, 126
+
+	ret
+	
+
+checkInputs:
+		
+	JE R1, 1, player1up
+	JE R3, 1, player1down
+	JE R6, 1, player2up	
+	JE R5, 1, player2down
+	JE R8, 0, checkInputsEnd
+	JLT R10, 136, player1up
+	JGE R10, 136, player1down
+player1up:
+	JE R106, 0, checkInputsEnd
+	sub R106, 2
+	jmp checkInputsEnd
+player1down:
+	JGE R106, 202, checkInputsEnd
+	add R106, 2
+	jmp checkInputsEnd
+player2up:
+	JE R108, 0, checkInputsEnd
+	sub R108, 2
+	jmp checkInputsEnd
+player2down:
+	JGE R108, 202, checkInputsEnd
+	add R108, 2
+	jmp checkInputsEnd
+checkInputsEnd:
+
+	ret
+
+AI:
+	; Calc middle of P2
+	mov R20, R108
+	mov R21, R201
+	rs  R21, 1
+	add R20, R21
+
+	JGT: R102, R20, AIMoveDown
+	JLE:	R102, R20, AIMoveUp
+	jmp AIEnd
+
+AIMoveDown:
+	JGE R108, 202, AIEnd
+	add R108, 2
+	jmp AIEnd
+AIMoveUp:
+	JE R108, 0, AIEnd
+	sub R108, 2
+AIEnd:
+	ret

@@ -1,6 +1,11 @@
 #include "memmanager.h"
-#include "main.h"
-#include <stdio.h>
+#include "interpreter.h"
+
+#include "stm32746g_discovery.h"
+#include "stm32746g_discovery_lcd.h"
+#include "stm32746g_discovery_sdram.h"
+#include "stm32746g_discovery_ts.h"
+#include "stm32f7xx_hal.h"
 
 
 void init_memmanager(void) {
@@ -8,67 +13,43 @@ void init_memmanager(void) {
 }
 
 
-void flash_write(uint32_t address, uint8_t * data, uint32_t size) {
+void flash_write(uint32_t address, const uint8_t * data, uint32_t size) {
 	HAL_FLASH_Unlock();
-
-	for (uint32_t word_n = 0; word_n <= size/4; word_n++) {
-		uint32_t word = 0;
-		for (uint8_t n = 0; n < 4; n++)
-			word += (uint32_t)*(data+word_n+n) << n*8;
-		HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD,address+word_n,word);
-	}
+	BSP_QSPI_Write(data, address, size);
 	HAL_FLASH_Lock();
+}
+
+void flash_write32(uint32_t address, const uint32_t * data, uint32_t size) {
 }
 
 uint8_t game_list_len(void) {
 	uint8_t n_game;
-	for(n_game = 0; *(uint8_t*)(FLASH_SECTOR_1 + n_game*sizeof(s_game_list)) && *(uint8_t*)(FLASH_SECTOR_1 + n_game*sizeof(s_game_list)) < 128; n_game++);
+	for(n_game = 0; *g_games_list[n_game].title; n_game++);
 	return n_game;
 }
 
 void load_game_list(s_game_list * game_list) {
-	uint8_t n_game;
-	for(n_game = 0; *(uint8_t*)(FLASH_SECTOR_1 + n_game*sizeof(s_game_list)) && *(uint8_t*)(FLASH_SECTOR_1 + n_game*sizeof(s_game_list)) < 128; n_game++) {
-		strncpy(game_list[n_game].title, (char*)(FLASH_SECTOR_1 + n_game*sizeof(s_game_list)), 64);
-		game_list[n_game].p_icon = (s_game*)(FLASH_SECTOR_1 + n_game*sizeof(s_game_list) + 16);
-		game_list[n_game].p_game = (s_game*)(FLASH_SECTOR_1 + n_game*sizeof(s_game_list) + 17);
-		game_list[n_game].len = (s_game*)(FLASH_SECTOR_1 + n_game*sizeof(s_game_list) + 18);
+	for(uint8_t n_game = 0; *(uint8_t*)(SECTOR_LIST + n_game*sizeof(s_game_list)) /* && *(uint8_t*)(SECTOR_LIST + n_game*sizeof(s_game_list)) < 128 */; n_game++) {
+		strncpy(game_list[n_game].title, (char*)(SECTOR_LIST + n_game*sizeof(s_game_list)), 64);
+		game_list[n_game].p_icon = (uint16_t*)(SECTOR_LIST + n_game*sizeof(s_game_list) + 64);
+		game_list[n_game].p_game = (s_game*  )(uint32_t)(SECTOR_LIST + n_game*sizeof(s_game_list) + 68);
+		game_list[n_game].len 	 = (uint32_t )(SECTOR_LIST + n_game*sizeof(s_game_list) + 72);
 	}
 }
 
 
-
-void add_game_to_flash(s_game game, uint32_t len) {
-	uint8_t game_pos = game_list_len();
-	flash_write(FLASH_SECTOR_1 + game_pos*sizeof(s_game_list), game.title, 64);
-
-
-	uint32_t p_icon = (uint32_t)game.p_icon;
-	uint8_t p_icon_8t[4];
-	p_icon_8t[0] = p_icon&0xFF;
-	p_icon_8t[1] = (p_icon<<8)&0xFF;
-	p_icon_8t[2] = (p_icon<<16)&0xFF;
-	p_icon_8t[3] = (p_icon<<24)&0xFF;
-	flash_write(FLASH_SECTOR_1 + game_pos*sizeof(s_game_list)+17, p_icon_8t, 4);
-
-	uint32_t p_game = (uint32_t)game.p_icon-64;
-	uint8_t p_game_8t[4];
-	p_game_8t[0] = p_game&0xFF;
-	p_game_8t[1] = (p_game<<8)&0xFF;
-	p_game_8t[2] = (p_game<<16)&0xFF;
-	p_game_8t[3] = (p_game<<24)&0xFF;
-	flash_write(FLASH_SECTOR_1 + game_pos*sizeof(s_game_list)+16, p_game_8t, 4);
-
-
-	uint8_t len_8t[4];
-	len_8t[0] = len&0xFF;
-	len_8t[1] = (len<<8)&0xFF;
-	len_8t[2] = (len<<16)&0xFF;
-	len_8t[3] = (len<<24)&0xFF;
+void erase_game_list(void) {
+	uint8_t tmp0s[SECTOR_LIST_SIZE];
+	memset(tmp0s, 0, SECTOR_LIST_SIZE);
+	BSP_QSPI_Write(tmp0s, SECTOR_LIST, SECTOR_LIST_SIZE);
 }
 
-void erase_game_list(void) {
-	HAL_FLASH_Unlock();
-	flash_write(FLASH_SECTOR_1, NULL, FLASH_SECTOR_2-FLASH_SECTOR_1);
-	HAL_FLASH_Lock();
+void flash_erase(void) {
+	BSP_QSPI_Erase_Chip();
+}
+
+void load_game(const s_game_list * game_list, uint8_t game_index) {
+	printf("Game loaded: %s\r\n", game_list[game_index].title);
+	interpreter_running = 1;
+	g_active_game = game_list[game_index].p_game;
 }

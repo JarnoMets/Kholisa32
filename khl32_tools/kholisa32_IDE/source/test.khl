@@ -1,0 +1,16 @@
+.name = 'What a beauty! This makes the title 64 bytes which is needed!  -'
+
+.img = {
+   
+}
+
+ .sound = {
+   
+}
+
+init:
+   DEBUG "Game starting!"
+main:
+	DEBUG "Hello world!"
+	DEBUG "Test Test"
+	jmp main

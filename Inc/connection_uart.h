@@ -1,9 +1,8 @@
-#ifndef RECEIVEGAME_H_
-#define RECEIVEGAME_H_
-
-static int sg_connection;
+#ifndef _CONNECTION_UART_H_
+#define _CONNECTION_UART_H_
 
 #include "main.h"
+#include "memmanager.h"
 
 void await_start(void);
 
@@ -15,5 +14,6 @@ void stop_connection(void);
 void debug(void);
 void receive_game(void);
 
+uint8_t g_connection;
 
 #endif

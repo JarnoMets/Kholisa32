@@ -309,7 +309,6 @@ uint8_t BSP_QSPI_Write(uint8_t* pData, uint32_t WriteAddr, uint32_t Size)
     pData += current_size;
     current_size = ((current_addr + N25Q128A_PAGE_SIZE) > end_addr) ? (end_addr - current_addr) : N25Q128A_PAGE_SIZE;
   } while (current_addr < end_addr);
-  
   return QSPI_OK;
 }
 

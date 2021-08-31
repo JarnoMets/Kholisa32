@@ -1,39 +1,58 @@
-#include <connection_uart.h>
-#include "memmanager.h"
+#include "connection_uart.h"
+
+#include "stm32746g_discovery.h"
+#include "stm32746g_discovery_lcd.h"
+#include "stm32746g_discovery_sdram.h"
+#include "stm32746g_discovery_ts.h"
+#include "stm32f7xx_hal.h"
 
 extern UART_HandleTypeDef huart1;
 
+static const uint8_t OPEN = 0x02;
+static const uint8_t CLOSE = 0x04;
+static const uint8_t ACK = 0x06;
+static const uint8_t ERR = 0x15;
+static const uint8_t DEBUG = 0x30;
+static const uint8_t RECV_GAME = 0x31;
+
+
+static const int MAX_PACKET_SIZE = 7200;
+
 void await_start() {
-	char p_buf[18];
+	BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
+	uint8_t buf = 0;
 	do {
-		HAL_UART_Receive(&huart1, p_buf, sizeof("Start connection\r\n"), 1000);
-	} while(!strcmp(*p_buf, "Start connection\r\n"));
+		HAL_UART_Receive(&huart1, &buf, 1, 1000);
+	} while(buf != OPEN);
 	start_connection();
 }
 
 void start_connection() {
-	HAL_UART_Transmit(&huart1, "Connection started\r\n", sizeof("Connection started\r\n"), 1000);
-	sg_connection = 1;
+	HAL_UART_Transmit(&huart1, (uint8_t *)&OPEN, 1, 1000);
+	g_connection = 1;
 
-	char * action = (char *)calloc(64, sizeof(char));
+	uint8_t action = 0;
 
-	HAL_UART_Transmit(&huart1, "Action?\r\n", sizeof("Action?\r\n"), 1000);
-	HAL_UART_Receive(&huart1, action, 64, 1000);
+	do {
+		HAL_UART_Receive(&huart1, &action, 1, 1000);
+	} while(!action);
+	HAL_UART_Transmit(&huart1, (uint8_t *)&ACK, 1, 1000);
 
-	if (!strncmp(action, "close")) {
+	if (action == CLOSE) {
 		stop_connection();
 	} else
-	if (!strncmp(action, "debug")) {
+	if (action == DEBUG) {
 		debug();
 	} else
-	if (!strncmp(action, "send")) {
+	if (action == RECV_GAME) {
 		receive_game();
 	}
 }
 
 void stop_connection() {
-	HAL_UART_Transmit(&huart1, "Connection closed\r\n", sizeof("Connection closed\r\n"), 1000);
-	sg_connection = 0;
+	HAL_UART_Transmit(&huart1, (uint8_t *)&CLOSE, 1, 1000);
+	HAL_UART_Abort(&huart1);
+	g_connection = 0;
 }
 
 
@@ -44,16 +63,13 @@ void debug() {
 	for (uint8_t i = 0; i < 4; i++)
 		command[i] = (char*)calloc(64, sizeof(char*));
 
-	char token = ' ';
 	int * words_pos = (int *)calloc(4, sizeof(int));
 
-	HAL_UART_Transmit(&huart1, "Debug mode started\r\n", sizeof("Debug mode started\r\n"), 1000);
-	HAL_UART_Transmit(&huart1, "Enter q or exit to quit\r\n", sizeof("Enter q or exit to quit\r\n"), 1000);
+	HAL_UART_Transmit(&huart1, (uint8_t *)"Debug mode started\r\n", sizeof("Debug mode started\r\n"), 1000);
+	HAL_UART_Transmit(&huart1, (uint8_t *)"Enter q or exit to quit\r\n", sizeof("Enter q or exit to quit\r\n"), 1000);
 	while (modeDebug) {
-		HAL_UART_Transmit(&huart1, ">", sizeof(">"), 1000);
-		HAL_UART_Receive(&huart1, input, 128, 1000);
-
-			;
+		HAL_UART_Transmit(&huart1, (uint8_t *)">", sizeof(">"), 1000);
+		HAL_UART_Receive(&huart1, (uint8_t *)input, 128, 1000);
 
 
 	}
@@ -64,104 +80,129 @@ void debug() {
 
 
 void receive_game() {
-	s_game tmp_game;
-	uint32_t p_gameBase;
+	s_game header;
+	uint32_t buffer[MAX_PACKET_SIZE];
+	uint32_t n_packets 	= 0;
+	uint32_t len 		= 0;
+	uint32_t p_currentWriteLoc;
 
-	if (game_list_len())
-		p_gameBase = g_games_list[game_list_len()-1].p_game + g_games_list[game_list_len()-1].len;
+	uint8_t n_games = game_list_len();
+	load_game_list(g_games_list);
+
+	/* Calculate position to save game */
+	if (n_games)
+		p_currentWriteLoc = (uint32_t)((uint32_t)g_games_list[n_games-1].p_game + g_games_list[n_games-1].len);
 	else
-		p_gameBase = FLASH_SECTOR_2;
+		p_currentWriteLoc = (uint32_t)SECTOR_GAMES;
 
+	/* Receive total game length */
+	HAL_UART_Transmit(&huart1, (uint8_t *)&ACK, 1, 1000);
+	HAL_UART_Receive(&huart1, (uint8_t *)&len, sizeof(uint32_t), 1000);
+	if (len) {
+		HAL_UART_Transmit(&huart1, (uint8_t *)&ACK, 1, 1000);
+	} else {
+		HAL_UART_Transmit(&huart1, (uint8_t *)&ERR, 1, 1000);
+	}
 
-	/* Title receive start */
-	HAL_UART_Transmit(&huart1, "Title\r\n", sizeof("Title\r\n"), 1000); 							/* Ask for title 															*/
-	char str_title_len[2];																			/* Reserve place for length of title 										*/
-	HAL_UART_Receive(&huart1, str_title_len, 2, 1000); 												/* Receive title length														*/
-	HAL_UART_Transmit(&huart1, "\x06\r\n", sizeof("\x06\r\n"), 1000); 								/* ACK 																		*/
-	HAL_UART_Receive(&huart1, tmp_game.title, atoi(str_title_len), 1000); 							/* Receive title 															*/
-	HAL_UART_Transmit(&huart1, "\x06\r\n", sizeof("\x06\r\n"), 1000); 								/* ACK 																		*/
-	/* Title receive stop */
+	/* Receive amount of packets */
+	HAL_UART_Receive(&huart1, (uint8_t *)&n_packets, sizeof(uint32_t), 1000);
 
-
-
-	/* Icon receive start */
-	HAL_UART_Transmit(&huart1, "Icon\r\n", sizeof("Icon\r\n"), 1000); 								/* Ask for icon 															*/
-	uint8_t * tmp_icon = (uint8_t *)calloc(64*64*2, sizeof(uint8_t)); 								/* Make temporary place for the icon 										*/
-	HAL_UART_Receive(&huart1, tmp_icon, 2, 1000); 													/* Receive icon 															*/
-	tmp_game.p_icon = p_gameBase + sizeof(s_game); 													/* Calc position of the icon in flash 										*/
-	flash_write(tmp_game.p_icon, tmp_icon, 64*64*2); 												/* Write the icon received to flash											*/
-	free(tmp_icon); 																				/* Free up the temporary icon 												*/
-	HAL_UART_Transmit(&huart1, "\x06\r\n", sizeof("\x06\r\n"), 1000); 								/* ACK 																		*/
-	/* Icon receive stop */
+	if (n_packets) {
+		HAL_UART_Transmit(&huart1, (uint8_t *)&ACK, 1, 1000);
+	} else {
+		HAL_UART_Transmit(&huart1, (uint8_t *)&ERR, 1, 1000);
+	}
 
 
 
-	/* Game data receive start */
-	HAL_UART_Transmit(&huart1, "Game data\r\n", sizeof("Game data\r\n"), 1000); 					/* Ask for game data 														*/
-	char str_game_len[32];																			/* Reserve place for length of game 										*/
-	HAL_UART_Receive(&huart1, str_game_len, 32, 1000);												/* Receive length of game 													*/
-	HAL_UART_Transmit(&huart1, "\x06\r\n", sizeof("\x06\r\n"), 1000); 								/* ACK 																		*/
-	tmp_game.game_data_len = atoi(str_game_len);													/* Convert game length into uint32 											*/
-	uint8_t * tmp_game_data = (uint8_t *)calloc(tmp_game.game_data_len, sizeof(uint8_t));			/* Make temporary place for game data 										*/
-	HAL_UART_Receive(&huart1, tmp_game_data, tmp_game.game_data_len, 1000);							/* Receive game data														*/
-	tmp_game.p_data = tmp_game.p_icon + 64*64/2;													/* Calc position for game data in flash 									*/
-	flash_write(tmp_game.p_data, tmp_game_data, tmp_game.game_data_len);													/* Write the game data received to flash									*/
-	free(tmp_game_data);																			/* Free up the temporary game data 											*/
-	HAL_UART_Transmit(&huart1, "\x06\r\n", sizeof("\x06\r\n"), 1000); 								/* ACK 																		*/
-	/*Game data receive stop */
+	/* Receive header */
+	HAL_UART_Receive(&huart1, (uint8_t *)&header, sizeof(s_game), 1000);
+
+	if (*header.title) {
+		n_packets--;
+		/* Save header to flash */
+		uint32_t tmp_p_icon 	= (uint32_t)header.p_icon		+ p_currentWriteLoc;
+		uint32_t tmp_p_data		= (uint32_t)header.p_data 		+ p_currentWriteLoc;
+		uint32_t tmp_p_sprites	= (uint32_t)header.p_sprites 	+ p_currentWriteLoc;
+		uint32_t tmp_p_sounds	= (uint32_t)header.p_sounds  	+ p_currentWriteLoc;
+		uint32_t tmp_p_save		= (uint32_t)header.p_save 		+ p_currentWriteLoc;
+
+		uint8_t tmpBufHeader[20];
+
+		for (uint8_t i = 0; i < 4; i++)
+			tmpBufHeader[i]		= (uint8_t)((tmp_p_icon>>i*8)&(0xff));
+
+		for (uint8_t i = 0; i < 4; i++)
+			tmpBufHeader[i+4]	= (uint8_t)((tmp_p_data>>i*8)&(0xff));
+
+		for (uint8_t i = 0; i < 4; i++)
+			tmpBufHeader[i+8]	= (uint8_t)((tmp_p_sprites>>i*8)&(0xff));
+
+		for (uint8_t i = 0; i < 4; i++)
+			tmpBufHeader[i+12]	= (uint8_t)((tmp_p_sounds>>i*8)&(0xff));
+
+		for (uint8_t i = 0; i < 4; i++)
+			tmpBufHeader[i+16]	= (uint8_t)((tmp_p_save>>i*8)&(0xff));
+
+		flash_write(p_currentWriteLoc, (uint8_t*)header.title, 64);
+		flash_write(p_currentWriteLoc+64, tmpBufHeader, 20);
+
+		HAL_UART_Transmit(&huart1, (uint8_t *)&ACK, 1, 1000);
+	} else {
+		HAL_UART_Transmit(&huart1, (uint8_t *)&ERR , 1, 1000);
+	}
+
+	/* Add to games list */
+	uint32_t list_loc = SECTOR_LIST+n_games*sizeof(s_game_list);
 
 
-
-	/* Sprites receive start */
-	HAL_UART_Transmit(&huart1, "Sprites\r\n", sizeof("Sprites\r\n"), 1000); 						/* Ask for sprites															*/
-	char str_sprites_len[32];																		/* Reserve place for length of sprites										*/
-	HAL_UART_Receive(&huart1, str_sprites_len, 32, 1000);											/* Receive length of sprites												*/
-	HAL_UART_Transmit(&huart1, "\x06\r\n", sizeof("\x06\r\n"), 1000); 								/* ACK 																		*/
-	tmp_game.game_sprites_len = atoi(str_sprites_len);												/* Convert sprites length in uint32 										*/
-	uint8_t * tmp_sprites = (uint8_t *)calloc(tmp_game.game_sprites_len, sizeof(uint8_t));			/* Make temporary place for sprites											*/
-	HAL_UART_Receive(&huart1, tmp_sprites, tmp_game.game_sprites_len, 1000);						/* Receive sprites															*/
-	tmp_game.p_sprites = tmp_game.p_data + tmp_game.game_data_len;									/* Calc position for sprites flash 											*/
-	flash_write(tmp_game.p_sprites, tmp_sprites, tmp_game.game_data_len);													/* Write the sprites received to flash										*/
-	free(tmp_sprites);																				/* Free up the temporary sprites 											*/
-	HAL_UART_Transmit(&huart1, "\x06\r\n", sizeof("\x06\r\n"), 1000); 								/* ACK																		*/
-	/* Sprites receive stop */
-
-	/* Sound receive start */
-	HAL_UART_Transmit(&huart1, "Sound\r\n", sizeof("Sound\r\n"), 1000); 							/* Ask for sound															*/
-	char str_sound_len[32];																			/* Reserve place for length of sound										*/
-	HAL_UART_Receive(&huart1, str_sound_len, 32, 1000);												/* Receive length of sound 													*/
-	HAL_UART_Transmit(&huart1, "\x06\r\n", sizeof("\x06\r\n"), 1000); 								/* ACK 																		*/
-	tmp_game.game_sound_len = atoi(str_sound_len);													/* Convert sound length into uint32 										*/
-	uint8_t * tmp_sound = (uint8_t *)calloc(tmp_game.game_sound_len, sizeof(uint8_t));				/* Make temporary place for sound											*/
-	HAL_UART_Receive(&huart1, tmp_sound, tmp_game.game_sound_len, 1000);							/* Receive sound															*/
-	tmp_game.p_sound = tmp_game.p_sprites + tmp_game.game_sprites_len;								/* Calc position for sound in flash	 										*/
-	flash_write(tmp_game.p_sound, tmp_sound, tmp_game.game_sound_len);								/* Write the sound received to flash										*/
-	free(tmp_sound);																				/* Free up the temporary sound 												*/
-	HAL_UART_Transmit(&huart1, "\x06\r\n", sizeof("\x06\r\n"), 1000); 								/* ACK																		*/
-	/* Sound receive stop */
+	flash_write(list_loc, (uint8_t *)header.title, sizeof(header.title));
+	list_loc += sizeof(header.title);
 
 
+	uint8_t tmpBuf[12];
 
-	/* Save information start */
-	tmp_game.p_save = tmp_game.p_sound + tmp_game.game_sound_len;									/* Calc position for save in flash											*/
-	tmp_game.save_len = 0;																			/* New game received doesn't have any saved data, so length of save = 0		*/
-	HAL_UART_Transmit(&huart1, "Save max\r\n", sizeof("Sound\r\n"), 1000);							/* Ask for maximum save length												*/
-	char str_save_len[32];																			/* Reserve place for string about maximum save length 						*/
-	HAL_UART_Receive(&huart1, str_save_len, 32, 1000);												/* Receive maximum save length												*/
-	HAL_UART_Transmit(&huart1, "\x06\r\n", sizeof("\x06\r\n"), 1000);								/* ACK																		*/
-	tmp_game.save_len_max = atoi(str_save_len);														/* Convert maximum save length into int32									*/
-	/* Save information stop */
+	for (uint8_t i = 0; i < 4; i++)
+		tmpBuf[i] = (uint8_t)(((uint32_t)header.p_icon>>i*8)&(0xff));
 
-	uint32_t tmp_game_len = tmp_game.p_save + tmp_game.save_len_max - (uint8_t *)tmp_game.title;				/* Calculate the length of the total game									*/
+	for (uint8_t i = 0; i < 4; i++)
+		tmpBuf[i+4] = (uint8_t)((p_currentWriteLoc>>i*8)&(0xff));
 
-	add_game_to_flash(tmp_game, tmp_game_len);														/* Add the game struct to flash and add the game to the game list in flash	*/
+	for (uint8_t i = 0; i < 4; i++)
+		tmpBuf[i+8] = (uint8_t)((len>>i*8)&(0xff));
 
+	flash_write(list_loc, tmpBuf, 12);
+	p_currentWriteLoc += sizeof(header);
+
+
+	/* Receive data */
+	while(n_packets--) {
+		uint32_t packet_size;
+		/* Receive packet length */
+		HAL_UART_Receive(&huart1, (uint8_t *)&packet_size, sizeof(uint32_t), 1000);
+
+		if (packet_size && packet_size <= MAX_PACKET_SIZE)  {
+			/* Receive packet */
+			HAL_UART_Transmit(&huart1, (uint8_t *)&ACK, 1, 1000);
+			if (HAL_UART_Receive(&huart1, (uint8_t *)buffer, packet_size, 1000) == 0) {
+				/* Write packet to flash */
+				flash_write(p_currentWriteLoc, (uint8_t *)buffer, packet_size);
+				p_currentWriteLoc += packet_size;
+				HAL_UART_Transmit(&huart1, (uint8_t *)&ACK, 1, 1000);
+			} else {
+				HAL_UART_Transmit(&huart1, (uint8_t *)&ERR, 1, 1000);
+			}
+		} else {
+			HAL_UART_Transmit(&huart1, (uint8_t *)&ERR, 1, 1000);
+		}
+	}
 	stop_connection();
+	load_game_list(g_games_list);
 }
 
 void stripcrnl(char * string) {
 	for (uint8_t n = 0; string[n]; n++)
 		if ('\n' == string[n] || '\r' == string[n])
-			string[n] = NULL;
+			string[n] = '\0';
 }
 

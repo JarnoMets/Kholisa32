@@ -1,0 +1,43 @@
+.name = 'Paint'
+
+.img = {
+   
+}
+
+ .sound = {
+   
+}
+
+init:
+	;X loc
+	mov R20, 450
+	mov R21, 10 
+
+	;Brushsize
+	mov R22, 10
+
+	;Color red
+	mov R30, 4294901760
+
+	;Color blue
+	mov R31, 4278190335
+
+	call resetScreen
+main:
+   JE R8, 0, mainEnd
+	;Check if close screen is pressed
+	JLT R9, 430, main2
+	JGT R10, 50, main2
+	call quit
+main2:
+	DRAWCIRCLE R9, R10, R22, R31
+mainEnd: 
+	jmp main
+
+resetScreen:
+	clear
+	DISPSTRING "X", R20, R21, R30
+	ret
+
+quit:
+	STOP 1

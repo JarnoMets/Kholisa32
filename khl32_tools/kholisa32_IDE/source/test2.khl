@@ -1,0 +1,71 @@
+.name = 'Demo 1'
+
+.img = {
+
+}
+
+.sound = {
+	 
+	 
+   
+}
+
+init:
+	mov R20, 0
+	mov R21, 10
+	mov R22, 20
+	mov R23, 20
+	;Color red
+	mov R24, 4294901760
+
+	mov R30, 0
+	mov R31, 100
+	mov R32, 0
+	mov R33, 20
+	;Color green
+	mov R34, 4278255360
+
+	mov R40, 460
+	mov R41, 200
+	mov R42, 20
+	mov R43, 20
+	;Color blue
+	mov R44, 4278190335
+
+
+	;X loc
+	mov R50, 450
+	mov R51, 10 
+
+	;Brushsize
+	mov R22, 10
+main:
+	JE R8, 0, skipTS
+	;Check if close screen is pressed
+	JLT R9, 430, skipTS
+	JGT R10, 50, skipTS
+	STOP 1	
+skipTS:
+	clear
+
+	DISPSTRING "X", R50, R51, R24
+	DRAWRECT R20, R21, R22, R23, R24
+	DRAWRECT R30, R31, R32, R33, R34
+	DRAWRECT R40, R41, R42, R43, R44
+
+	add R20, 10
+	add R32, 5
+	DEC R40
+
+	JGT R40, 0, main2
+	mov R40, 460
+main2:
+	JLT R32, 480, main3
+	mov R32, 0
+main3:
+	JGE R20, 480, reset
+	jmp main
+
+reset:
+	mov R20, 0
+	jmp main

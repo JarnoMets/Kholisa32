@@ -1,0 +1,3 @@
+{
+    "files": ["uart.py","img_converter.py","link.py","main.py","compiler.py","mainwindow.ui","settings.conf"]
+}

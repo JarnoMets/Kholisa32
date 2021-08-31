@@ -53,7 +53,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f7xx_hal.h"
 #include "n25q128a.h"
-
+#include <stdio.h>
 /** @addtogroup STM32746G_DISCOVERY_QSPI
   * @{
   */    
